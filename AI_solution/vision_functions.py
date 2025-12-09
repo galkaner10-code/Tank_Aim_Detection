@@ -116,7 +116,7 @@ def main_integration(img_path):
     straight, angle = straighten_cross(crop, (crop_orientation-original_orientation+45))
 
     cv2.imshow("straighten", straight)
-    cv2.imwrite("RESULTED_DETECTION.png")
+    cv2.imwrite("RESULTED_DETECTION.png", straight)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
