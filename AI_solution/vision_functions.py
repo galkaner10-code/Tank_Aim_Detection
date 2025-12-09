@@ -14,16 +14,24 @@ import numpy as np
 #----------------------------------------#
 
 def cross_orientation_angle_hough(crop):
+    """
+    returns the average angle of Hough lines in the image. 
+    For a straight normal cross this will result in 45 deg angle. 
+    This will be normalized outside the function
+    """
+
+    # initialization
     gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) if crop.ndim == 3 else crop
     _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
     edges = cv2.Canny(mask, 50, 150, apertureSize=3)
 
+    # Hough Lines
     lines = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=30,
                             minLineLength=20, maxLineGap=5)
     if lines is None:
         return None, mask
 
+    # Angles of Hough lines
     angles = []
     for l in lines:
         x1, y1, x2, y2 = l[0]
@@ -32,6 +40,7 @@ def cross_orientation_angle_hough(crop):
         if dx == 0 and dy == 0:
             continue
         angle = np.degrees(np.arctan2(dy, dx))
+        
         # normalize to [0, 180)
         angle = angle % 180.0
         angles.append(angle)
