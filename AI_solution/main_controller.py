@@ -17,13 +17,11 @@ def scanner(yaw_lims=[-45, 5, 45], pitch_lims=[-10, 5, 10], sleep_interval=0.02)
     MAX_PITCH = pitch_lims[2]
     PITCH_STEP = pitch_lims[1]
 
-    current_pitch = MIN_PITCH
-
     # --- for each pitch angle, sweep yaw angles --- #
     direction = 1
 
     pitch = MIN_PITCH
-    while (current_pitch <= MAX_PITCH):
+    while (pitch <= MAX_PITCH):
         if direction == 1:
             START_YAW = yaw_lims[0]
             END_YAW = yaw_lims[2]
@@ -36,7 +34,6 @@ def scanner(yaw_lims=[-45, 5, 45], pitch_lims=[-10, 5, 10], sleep_interval=0.02)
         yaw = START_YAW
 
         while not done_mini_sweep(yaw, END_YAW, YAW_STEP):
-            print("--- detecting @ pitch = " + str(pitch) + ", yaw = " + str(yaw))
 
             # --- gets current frame --- #
             img_path = next_image_path()
@@ -46,24 +43,26 @@ def scanner(yaw_lims=[-45, 5, 45], pitch_lims=[-10, 5, 10], sleep_interval=0.02)
                 return False, None, None, None, None
 
             print(f"  Using image: {img_path}")
+            print("yaw step: " + str(YAW_STEP) + ", current yaw: " + str(yaw))
+            print("--- detecting @ pitch = " + str(pitch) + ", yaw = " + str(yaw))
 
             roll, crop_img = main_integration(img_path)
-            if roll is None:
-                print("  -> No cross detected in this image. Continuing scan.")
-                continue
+            if roll is not None:
+                print("\n>>> CROSS DETECTED <<<")
+                print(f"Barrel yaw:   {yaw:.2f}°")
+                print(f"Barrel pitch: {pitch:.2f}°")
+                print(f"Cross roll:   {roll:.2f}°")
 
-            print("\n>>> CROSS DETECTED <<<")
-            print(f"Barrel yaw:   {yaw:.2f}°")
-            print(f"Barrel pitch: {pitch:.2f}°")
-            print(f"Cross roll:   {roll:.2f}°")
+                return True, yaw, pitch, roll, crop_img
 
-            return True, yaw, pitch, roll, crop_img
+            print("  -> No cross detected in this image. Continuing scan.")
 
             time.sleep(sleep_interval)
-            yaw += YAW_STEP
+            yaw = yaw + YAW_STEP
+
 
         direction *= -1
-        pitch += PITCH_STEP
+        pitch = pitch + PITCH_STEP
 
     # finished all yaw/pitch combinations, no detection
     print("\nNo cross found in the defined yaw/pitch search space.")
